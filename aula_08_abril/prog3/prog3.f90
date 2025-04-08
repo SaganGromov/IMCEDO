@@ -5,7 +5,7 @@ program iterativo
     double precision, dimension(:), allocatable :: x
 
     allocate(x(0:100))
-    x(0) =  1.5d0
+    x(0) =  -18.d0
 
     do i = 0,99
         x(i+1) = g(x(i))
@@ -20,7 +20,21 @@ contains
     function g(x)
         implicit none
         double precision :: g, x
-        g = (x + 1.d0)** (1.0 / 3.0)
+        g = x - f(x)/flinha(x)
         return
     end function g
+
+    function f(x)
+        implicit none
+        double precision :: f, x
+        f = x*x*x - x - 1.d0
+        return
+    end function f
+
+    function flinha (x)
+        implicit none
+        double precision :: flinha, x
+        flinha = 3.d0*x**2 - 1.d0
+        return
+    end function flinha
 end program iterativo
