@@ -17,7 +17,7 @@ program newton
         ! x = x - y
         call sistema(N, jac(N,x), f(N, x), y) ! resolve sistema para y
         x = x - y ! avança no NR
-        write(*,*) k, x, f(N, x) !imprime na tela
+        ! write(*,*) k, x, f(N, x) !imprime na tela
     end do
 
     deallocate(x)
@@ -62,13 +62,17 @@ contains
         double precision, dimension(N), intent(out) :: x 
         double precision, dimension(N), intent(in) :: b
         double precision, dimension(N, N), intent(in) :: a
-        double precision :: soma
+        double precision :: soma, erro, tol
         integer :: i, j, k, N
 
         ! a(2, 1) = 109.9
 
         x = 0.d0
-        do k = 1, 200
+        tol = 1.d-10
+        erro = 19.d0
+        k = 0
+        do while (erro .gt. tol)
+            k = k + 1
             do i = 1, N
                 soma = 0.d0
                 do j = 1, N
@@ -79,8 +83,35 @@ contains
                 end do
                 x(i) = (b(i) - soma)/a(i, i)
             end do
-            ! write(*,*) k, x
+            erro = 0.d0 
+            do i = 1, N
+                soma = 0.d0
+                do j = 1, N
+                    soma = soma + a(i, j) * x(j)
+                    ! if (j /= i) then
+                    ! if(j.ne.i) then
+                    !     soma = soma + a(i, j) * x(j)
+                    ! end if
+                end do
+                soma = soma - b(i)
+                erro = erro + soma * soma
+            end do
+            erro=dsqrt(erro)
+            write(*,*) k, x, erro
         end do
+        ! do k = 1, 200
+        !     do i = 1, N
+        !         soma = 0.d0
+        !         do j = 1, N
+        !             ! if (j /= i) then
+        !             if(j.ne.i) then
+        !                 soma = soma + a(i, j) * x(j)
+        !             end if
+        !         end do
+        !         x(i) = (b(i) - soma)/a(i, i)
+        !     end do
+        !     ! write(*,*) k, x
+        ! end do
 
         ! read(*,*) 
 
