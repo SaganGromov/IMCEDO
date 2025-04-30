@@ -21,7 +21,7 @@ program calcula_seno
 
   do i = 1, n
     x = (i - 1) * dx                ! Calcula o valor de x no ponto i
-    write(10,'(F12.8,1X,F12.8)') x, sin(x)
+    write(10,*) x, sin(x)
     ! Escreve no arquivo o valor de x e sin(x), separados por espaço
     ! F12.8: formato com 12 caracteres no total e 8 casas decimais
   end do
