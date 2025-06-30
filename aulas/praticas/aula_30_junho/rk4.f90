@@ -1,42 +1,50 @@
-program rk4
+! rk4_module.f90
+!
+! Generic fixed–step classical Runge–Kutta integrator
+! ---------------------------------------------------
+module rk4_module
+   use iso_fortran_env, only : real64, int64
+   implicit none
+   private
+   public :: rk4_integrate
 
-    double precision , dimension(:), allocatable :: y 
-    integer :: Nfim, n
-    double precision :: h, k1, k2, k3, k4
-    
-    Nfim = 20
-    h = 2.d0/dble(Nfim)
-    allocate(y(0:Nfim))
+   ! Prototype for the RHS f(t,y)
+   abstract interface
+      pure function rhs_fun(t,y) result(f)
+         import :: real64
+         real(real64), intent(in) :: t, y
+         real(real64)            :: f
+      end function rhs_fun
+   end interface
 
-    y(0) = 1.d0  ! Initial condition y(0) = 1
-    do n = 0, Nfim - 1
-        k1 = f(n*h, y(n))
-        k2 = f(n*h + 0.5d0 * h, y(n) + 0.5d0 * h * k1)
-        k3 = f(n*h + 0.5d0 * h, y(n) + 0.5d0 * h * k2)
-        k4 = f((n+1)*h, y(n) + h * k3)
-        y(n+1) = y(n) + h/6.d0 * (k1 + 2.d0 * k2 + 2.d0 * k3 + k4)
-    end do
+contains
+   !--------------------------------------------------------------------
+   ! Integrate y' = f(t,y),  y(t0) = y0  on [t0 , t_final]  with nsteps
+   ! Output: y_hist(1) = y0, … , y_hist(nsteps+1) = y(t_final)
+   !--------------------------------------------------------------------
+   subroutine rk4_integrate(rhs, t0, y0, t_final, nsteps, y_hist)
+      procedure(rhs_fun)          :: rhs
+      real(real64), intent(in)    :: t0, y0, t_final
+      integer(int64), intent(in)  :: nsteps
+      real(real64), intent(out)   :: y_hist(:)   ! size ≥ nsteps+1
 
-    open(unit = 123, file = 'saida.dat', status = 'unknown')
-    do n = 0, Nfim
-        write(*,*) n*h, y(n)
-    end do
-    close(unit = 123)
+      real(real64) :: h, t, y
+      real(real64) :: k1, k2, k3, k4
+      integer(int64) :: n
 
-    implicit none
+      h = (t_final - t0) / real(nsteps, real64)
+      t = t0
+      y = y0
+      y_hist(1) = y                          ! n = 0
 
-contains 
-    
-    function f(t, y)
-
-        implicit none 
-
-        f = (1.d0 - 4.d0 * t/3.d0) * y
-
-        !y' = (1 - 4t/3)y, y(0) = 1
-
-        return 
-    
-    end function f
-
-end program rk4
+      do n = 1_int64, nsteps
+         k1 = rhs(t,               y)
+         k2 = rhs(t + 0.5_real64*h, y + 0.5_real64*h*k1)
+         k3 = rhs(t + 0.5_real64*h, y + 0.5_real64*h*k2)
+         k4 = rhs(t + h,            y + h*k3)
+         y  = y + h*(k1 + 2.0_real64*k2 + 2.0_real64*k3 + k4)/6.0_real64
+         t  = t + h
+         y_hist(n+1) = y
+      end do
+   end subroutine rk4_integrate
+end module rk4_module
