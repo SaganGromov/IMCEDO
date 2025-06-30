@@ -8,7 +8,7 @@ program rk4
     h = 2.d0/dble(Nfim)
     allocate(y(0:Nfim))
 
-
+    y(0) = 1.d0  ! Initial condition y(0) = 1
     do n = 0, Nfim - 1
         k1 = f(n*h, y(n))
         k2 = f(n*h + 0.5d0 * h, y(n) + 0.5d0 * h * k1)
